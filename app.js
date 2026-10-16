@@ -5,8 +5,7 @@
 
   var FIGMA = Object.assign({}, LG.DEFAULTS, { width: 420, height: 260 });
   var state = Object.assign({}, FIGMA);
-  var RANGES = ['lightAngle', 'lightIntensity', 'refraction', 'depth', 'dispersion', 'frost', 'splay', 'fillOpacity', 'radius', 'width', 'height'];
-  var UNITS = { lightAngle: '°', lightIntensity: '%', fillOpacity: '%', radius: 'px', width: 'px', height: 'px' };
+  var RANGES = ['lightAngle', 'lightIntensity', 'refraction', 'depth', 'dispersion', 'frost', 'splay', 'fillOpacity', 'width', 'height'];
 
   var stage = $('stage'), glass = $('glass'), bg = $('bg');
   var activeTab = 'script';
@@ -26,14 +25,15 @@
   var inst = LG.apply(glass, glassOptions());
 
   $('status').innerHTML = inst.lens
-    ? '<b>Lens on.</b> Full refraction in this browser.'
-    : '<b>Frosted fallback.</b> Open in Chrome or Edge for refraction.';
+      ? '<b>Lens on.</b> Full refraction in this browser.'
+      : '<b>Frosted fallback.</b> Open in Chrome or Edge for refraction.';
 
   /* ---------- controls ---------- */
-  function label(k) { return state[k] + (UNITS[k] || ''); }
   function syncControls() {
     RANGES.forEach(function (k) {
-      var i = $(k); i.value = state[k]; i.nextElementSibling.textContent = label(k);
+      $(k).value = state[k];
+      $(k + '-num').value = state[k];
+      $(k + '-num').removeAttribute('aria-invalid');
     });
     $('fillColor').value = state.fillColor;
     $('fillColorText').value = state.fillColor;
@@ -50,12 +50,57 @@
   }
 
   RANGES.forEach(function (k) {
-    $(k).addEventListener('input', function (e) {
-      state[k] = +e.target.value;
-      e.target.nextElementSibling.textContent = label(k);
+    var slider = $(k), num = $(k + '-num');
+    var min = +slider.min, max = +slider.max;
+
+    function setValue(v) {
+      state[k] = v;
+      slider.value = v;
       refresh();
+    }
+
+    // slider -> number field
+    slider.addEventListener('input', function () {
+      num.value = slider.value;
+      num.removeAttribute('aria-invalid');
+      setValue(+slider.value);
     });
+
+    // typing: apply live while the value is valid and in range
+    num.addEventListener('input', function () {
+      var v = Number(num.value);
+      if (num.value.trim() === '' || !isFinite(v) || v < min || v > max) {
+        num.setAttribute('aria-invalid', 'true');
+        return;
+      }
+      num.removeAttribute('aria-invalid');
+      setValue(Math.round(v));
+    });
+
+    // leaving the field or pressing Enter: clamp to range and round
+    function commit() {
+      var v = Number(num.value);
+      if (num.value.trim() === '' || !isFinite(v)) v = state[k];
+      v = Math.round(Math.min(max, Math.max(min, v)));
+      num.value = v;
+      num.removeAttribute('aria-invalid');
+      if (v !== state[k]) setValue(v);
+    }
+    num.addEventListener('change', commit);
+    num.addEventListener('blur', commit);
+    num.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { commit(); num.select(); }
+      else if (e.key === 'Escape') { num.value = state[k]; num.removeAttribute('aria-invalid'); num.blur(); }
+      else if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && e.shiftKey) {
+        e.preventDefault();
+        var step = e.key === 'ArrowUp' ? 10 : -10;
+        num.value = Math.min(max, Math.max(min, state[k] + step));
+        setValue(+num.value);
+      }
+    });
+    num.addEventListener('focus', function () { num.select(); });
   });
+
 
   $('fillColor').addEventListener('input', function (e) {
     state.fillColor = e.target.value;
@@ -79,12 +124,6 @@
   $('fillColorText').addEventListener('blur', function (e) {
     e.target.value = state.fillColor;
     e.target.removeAttribute('aria-invalid');
-  });
-
-  $('reset').addEventListener('click', function () {
-    state = Object.assign({}, FIGMA);
-    syncControls();
-    refresh();
   });
 
   /* ---------- image upload ---------- */
@@ -147,56 +186,60 @@
     }).join(',\n') + '\n' + indent + '}';
   }
 
+  function radius() {
+    return Math.round(LG.readRadius(glass, glass.offsetWidth, glass.offsetHeight));
+  }
+
   function scriptCode() {
     return '<!-- 1. Your element -->\n'
-      + '<div class="glass-card">Your content</div>\n\n'
-      + '<!-- 2. Size it however you like. The map follows its real size. -->\n'
-      + '<style>\n  .glass-card { position: relative; width: ' + state.width + 'px; max-width: 100%; height: ' + state.height + 'px; }\n</style>\n\n'
-      + '<!-- 3. Load liquid-glass.js (see the liquid-glass.js tab) and apply -->\n'
-      + '<script src="liquid-glass.js"><\/script>\n'
-      + '<script>\n'
-      + "  document.querySelectorAll('.glass-card').forEach(function (el) {\n"
-      + '    LiquidGlass.apply(el, ' + optionsLiteral('    ') + ');\n'
-      + '  });\n'
-      + '<\/script>\n';
+        + '<div class="glass-card">Your content</div>\n\n'
+        + '<!-- 2. Size and round it in CSS. The lens follows its real size and border-radius. -->\n'
+        + '<style>\n  .glass-card { position: relative; width: ' + state.width + 'px; max-width: 100%; height: ' + state.height + 'px; border-radius: ' + radius() + 'px; }\n</style>\n\n'
+        + '<!-- 3. Load liquid-glass.js (see the liquid-glass.js tab) and apply -->\n'
+        + '<script src="liquid-glass.js"><\/script>\n'
+        + '<script>\n'
+        + "  document.querySelectorAll('.glass-card').forEach(function (el) {\n"
+        + '    LiquidGlass.apply(el, ' + optionsLiteral('    ') + ');\n'
+        + '  });\n'
+        + '<\/script>\n';
   }
 
   function prettyFilter(markup) {
     return markup
-      .replace(/></g, '>\n<')
-      .split('\n')
-      .map(function (l) { return /^<\/?filter/.test(l) ? '  ' + l : '    ' + l; })
-      .join('\n');
+        .replace(/></g, '>\n<')
+        .split('\n')
+        .map(function (l) { return /^<\/?filter/.test(l) ? '  ' + l : '    ' + l; })
+        .join('\n');
   }
 
   function staticCode() {
     var w = Math.round(glass.offsetWidth), h = Math.round(glass.offsetHeight);
-    var o = glassOptions(), id = 'lg-glass';
+    var o = glassOptions(), id = 'lg-glass', r = radius();
     var fb = LG.fallbackBackdrop(o);
     return '/* CSS */\n'
-      + '.glass-card {\n'
-      + '  position: relative;\n'
-      + '  width: ' + w + 'px;\n'
-      + '  height: ' + h + 'px;\n'
-      + '  border-radius: ' + o.radius + 'px;\n'
-      + '  background: ' + LG.fill(o) + ';\n'
-      + '  backdrop-filter: ' + LG.backdrop(id, o) + ';\n'
-      + '  box-shadow:\n    ' + LG.boxShadowList(o).join(',\n    ') + ';\n'
-      + '  isolation: isolate;\n'
-      + '}\n\n'
-      + '/* Safari and Firefox: no SVG lens, so use frosted glass */\n'
-      + '.no-lens .glass-card {\n'
-      + '  backdrop-filter: ' + fb + ';\n'
-      + '  -webkit-backdrop-filter: ' + fb + ';\n'
-      + '}\n\n'
-      + '<!-- SVG: paste once anywhere in <body>. Sized for ' + w + '×' + h + 'px. -->\n'
-      + '<svg width="0" height="0" style="position:absolute" aria-hidden="true">\n'
-      + prettyFilter(LG.filterMarkup(id, w, h, o)) + '\n'
-      + '</svg>\n\n'
-      + '<!-- JS: one line, flags browsers without the lens -->\n'
-      + '<script>\n'
-      + "  if (!(navigator.userAgentData && navigator.userAgentData.brands.some(function (b) { return /Chromium/.test(b.brand); }))) document.documentElement.classList.add('no-lens');\n"
-      + '<\/script>\n';
+        + '.glass-card {\n'
+        + '  position: relative;\n'
+        + '  width: ' + w + 'px;\n'
+        + '  height: ' + h + 'px;\n'
+        + '  border-radius: ' + r + 'px;\n'
+        + '  background: ' + LG.fill(o) + ';\n'
+        + '  backdrop-filter: ' + LG.backdrop(id, o) + ';\n'
+        + '  box-shadow:\n    ' + LG.boxShadowList(o).join(',\n    ') + ';\n'
+        + '  isolation: isolate;\n'
+        + '}\n\n'
+        + '/* Safari and Firefox: no SVG lens, so use frosted glass */\n'
+        + '.no-lens .glass-card {\n'
+        + '  backdrop-filter: ' + fb + ';\n'
+        + '  -webkit-backdrop-filter: ' + fb + ';\n'
+        + '}\n\n'
+        + '<!-- SVG: paste once anywhere in <body>. Sized for ' + w + '×' + h + 'px. -->\n'
+        + '<svg width="0" height="0" style="position:absolute" aria-hidden="true">\n'
+        + prettyFilter(LG.filterMarkup(id, w, h, o, r)) + '\n'
+        + '</svg>\n\n'
+        + '<!-- JS: one line, flags browsers without the lens -->\n'
+        + '<script>\n'
+        + "  if (!(navigator.userAgentData && navigator.userAgentData.brands.some(function (b) { return /Chromium/.test(b.brand); }))) document.documentElement.classList.add('no-lens');\n"
+        + '<\/script>\n';
   }
 
   var NOTES = {

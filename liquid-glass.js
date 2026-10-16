@@ -5,6 +5,7 @@
  * browsers; Safari and Firefox get a frosted-glass fallback.
  *
  * Usage:
+ *   .glass-card { border-radius: 40px; }   // radius comes from your CSS
  *   LiquidGlass.apply(element, { refraction: 100, depth: 57, ... });
  */
 (function (root) {
@@ -19,9 +20,10 @@
     frost: 1,             // 0–100, backdrop blur
     splay: 100,           // 0–100, how far the bend reaches inward
     fillColor: '#ffffff', // layer fill colour
-    fillOpacity: 10,      // layer fill opacity %, 0–100
-    radius: 40            // border radius, px
+    fillOpacity: 10       // layer fill opacity %, 0–100
   };
+  // Corner radius is not an option: set border-radius in your CSS and the
+  // lens reads it from the element, so the shape and the map always match.
 
   var NS = 'http://www.w3.org/2000/svg';
 
@@ -43,23 +45,30 @@
     return 'rgba(' + c[0] + ', ' + c[1] + ', ' + c[2] + ', ' + +(o.fillOpacity / 100).toFixed(2) + ')';
   }
 
-  function mapURI(w, h, o) {
-    var r = Math.min(o.radius, w / 2, h / 2);
+  function readRadius(el, w, h) {
+    var v = getComputedStyle(el).borderTopLeftRadius || '0';
+    var n = parseFloat(v) || 0;
+    if (/%$/.test(v.trim())) n = (n / 100) * Math.min(w, h);
+    return n;
+  }
+
+  function mapURI(w, h, o, radius) {
+    var r = Math.min(radius || 0, w / 2, h / 2);
     var bezel = Math.max(2, (o.depth / 100) * Math.min(w, h) * 0.25);
     var soft = bezel * (0.3 + 0.9 * o.splay / 100);
     var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + w + '" height="' + h + '" viewBox="0 0 ' + w + ' ' + h + '">'
-      + '<defs><linearGradient id="Y" x1="0" x2="0" y1="3%" y2="97%"><stop offset="0" stop-color="#0F0"/><stop offset="1" stop-color="#000"/></linearGradient>'
-      + '<linearGradient id="X" x1="2%" x2="98%" y1="0" y2="0"><stop offset="0" stop-color="#F00"/><stop offset="1" stop-color="#000"/></linearGradient></defs>'
-      + '<rect width="' + w + '" height="' + h + '" fill="#808080"/>'
-      + '<g filter="blur(2px)"><rect width="' + w + '" height="' + h + '" fill="#000080"/>'
-      + '<rect width="' + w + '" height="' + h + '" fill="url(#Y)" style="mix-blend-mode:screen"/>'
-      + '<rect width="' + w + '" height="' + h + '" fill="url(#X)" style="mix-blend-mode:screen"/>'
-      + '<rect x="' + bezel.toFixed(1) + '" y="' + bezel.toFixed(1) + '" width="' + (w - 2 * bezel).toFixed(1) + '" height="' + (h - 2 * bezel).toFixed(1)
-      + '" rx="' + Math.max(0, r - bezel).toFixed(1) + '" fill="#808080" filter="blur(' + soft.toFixed(1) + 'px)"/></g></svg>';
+        + '<defs><linearGradient id="Y" x1="0" x2="0" y1="3%" y2="97%"><stop offset="0" stop-color="#0F0"/><stop offset="1" stop-color="#000"/></linearGradient>'
+        + '<linearGradient id="X" x1="2%" x2="98%" y1="0" y2="0"><stop offset="0" stop-color="#F00"/><stop offset="1" stop-color="#000"/></linearGradient></defs>'
+        + '<rect width="' + w + '" height="' + h + '" fill="#808080"/>'
+        + '<g filter="blur(2px)"><rect width="' + w + '" height="' + h + '" fill="#000080"/>'
+        + '<rect width="' + w + '" height="' + h + '" fill="url(#Y)" style="mix-blend-mode:screen"/>'
+        + '<rect width="' + w + '" height="' + h + '" fill="url(#X)" style="mix-blend-mode:screen"/>'
+        + '<rect x="' + bezel.toFixed(1) + '" y="' + bezel.toFixed(1) + '" width="' + (w - 2 * bezel).toFixed(1) + '" height="' + (h - 2 * bezel).toFixed(1)
+        + '" rx="' + Math.max(0, r - bezel).toFixed(1) + '" fill="#808080" filter="blur(' + soft.toFixed(1) + 'px)"/></g></svg>';
     return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
   }
 
-  function filterMarkup(id, w, h, o) {
+  function filterMarkup(id, w, h, o, radius) {
     var scale = (o.refraction / 100) * 160;
     var spread = (o.dispersion / 100) * 12;
     var channels = [
@@ -68,10 +77,10 @@
       ['B', '0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0', scale - spread]
     ];
     var s = '<filter id="' + id + '" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">'
-      + '<feImage x="0" y="0" width="' + w + '" height="' + h + '" href="' + mapURI(w, h, o) + '" result="map"/>';
+        + '<feImage x="0" y="0" width="' + w + '" height="' + h + '" href="' + mapURI(w, h, o, radius) + '" result="map"/>';
     channels.forEach(function (c) {
       s += '<feDisplacementMap in="SourceGraphic" in2="map" scale="' + c[2].toFixed(1) + '" xChannelSelector="R" yChannelSelector="G"/>'
-        + '<feColorMatrix type="matrix" values="' + c[1] + '" result="d' + c[0] + '"/>';
+          + '<feColorMatrix type="matrix" values="' + c[1] + '" result="d' + c[0] + '"/>';
     });
     return s + '<feBlend in="dR" in2="dG" mode="screen" result="rg"/><feBlend in="rg" in2="dB" mode="screen"/></filter>';
   }
@@ -116,12 +125,11 @@
     function render() {
       var w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
       if (!w || !h) return;
-      el.style.borderRadius = o.radius + 'px';
       el.style.background = fill(o);
       el.style.boxShadow = boxShadowList(o).join(', ');
       el.style.isolation = 'isolate';
       if (lens) {
-        holder.innerHTML = filterMarkup(id, w, h, o);
+        holder.innerHTML = filterMarkup(id, w, h, o, readRadius(el, w, h));
         el.style.backdropFilter = backdrop(id, o);
       } else {
         el.style.backdropFilter = el.style.webkitBackdropFilter = fallbackBackdrop(o);
@@ -144,6 +152,7 @@
     DEFAULTS: DEFAULTS,
     apply: apply,
     supportsLens: supportsLens,
+    readRadius: readRadius,
     fill: fill,
     filterMarkup: filterMarkup,
     boxShadowList: boxShadowList,
