@@ -1,0 +1,21 @@
+{
+  "name": "liquid-glass-effect",
+  "version": "1.0.0",
+  "description": "Figma-style Glass effect for the web with CSS, SVG and a small JavaScript helper.",
+  "private": true,
+  "main": "dist/liquid-glass.min.js",
+  "files": ["dist"],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "start": "npm run build && npx serve ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tung13041996/liquid-glass-effect.git"
+  },
+  "homepage": "https://liquid-glass-effect.netlify.app/",
+  "author": "Tung Nguyen",
+  "devDependencies": {
+    "terser": "5.36.0"
+  }
+}

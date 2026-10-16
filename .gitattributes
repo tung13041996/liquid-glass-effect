@@ -1,0 +1,9 @@
+# GitHub "Download ZIP" and release source archives (git archive)
+# contain only the minified library and the README.
+* export-ignore
+/dist -export-ignore
+/dist/liquid-glass.min.js -export-ignore
+/README.md -export-ignore
+
+# Treat the built file as generated: collapsed in diffs, excluded from language stats
+/dist/liquid-glass.min.js linguist-generated=true -diff

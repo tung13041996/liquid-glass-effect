@@ -25,8 +25,8 @@
   var inst = LG.apply(glass, glassOptions());
 
   $('status').innerHTML = inst.lens
-      ? '<b>Lens on.</b> Full refraction in this browser.'
-      : '<b>Frosted fallback.</b> Open in Chrome or Edge for refraction.';
+    ? '<b>Lens on.</b> Full refraction in this browser.'
+    : '<b>Frosted fallback.</b> Open in Chrome or Edge for refraction.';
 
   /* ---------- controls ---------- */
   function syncControls() {
@@ -192,24 +192,24 @@
 
   function scriptCode() {
     return '<!-- 1. Your element -->\n'
-        + '<div class="glass-card">Your content</div>\n\n'
-        + '<!-- 2. Size and round it in CSS. The lens follows its real size and border-radius. -->\n'
-        + '<style>\n  .glass-card { position: relative; width: ' + state.width + 'px; max-width: 100%; height: ' + state.height + 'px; border-radius: ' + radius() + 'px; }\n</style>\n\n'
-        + '<!-- 3. Load liquid-glass.js (see the liquid-glass.js tab) and apply -->\n'
-        + '<script src="liquid-glass.js"><\/script>\n'
-        + '<script>\n'
-        + "  document.querySelectorAll('.glass-card').forEach(function (el) {\n"
-        + '    LiquidGlass.apply(el, ' + optionsLiteral('    ') + ');\n'
-        + '  });\n'
-        + '<\/script>\n';
+      + '<div class="glass-card">Your content</div>\n\n'
+      + '<!-- 2. Size and round it in CSS. The lens follows its real size and border-radius. -->\n'
+      + '<style>\n  .glass-card { position: relative; width: ' + state.width + 'px; max-width: 100%; height: ' + state.height + 'px; border-radius: ' + radius() + 'px; }\n</style>\n\n'
+      + '<!-- 3. Load liquid-glass.min.js (use the Download button) and apply -->\n'
+      + '<script src="liquid-glass.min.js"><\/script>\n'
+      + '<script>\n'
+      + "  document.querySelectorAll('.glass-card').forEach(function (el) {\n"
+      + '    LiquidGlass.apply(el, ' + optionsLiteral('    ') + ');\n'
+      + '  });\n'
+      + '<\/script>\n';
   }
 
   function prettyFilter(markup) {
     return markup
-        .replace(/></g, '>\n<')
-        .split('\n')
-        .map(function (l) { return /^<\/?filter/.test(l) ? '  ' + l : '    ' + l; })
-        .join('\n');
+      .replace(/></g, '>\n<')
+      .split('\n')
+      .map(function (l) { return /^<\/?filter/.test(l) ? '  ' + l : '    ' + l; })
+      .join('\n');
   }
 
   function staticCode() {
@@ -217,35 +217,35 @@
     var o = glassOptions(), id = 'lg-glass', r = radius();
     var fb = LG.fallbackBackdrop(o);
     return '/* CSS */\n'
-        + '.glass-card {\n'
-        + '  position: relative;\n'
-        + '  width: ' + w + 'px;\n'
-        + '  height: ' + h + 'px;\n'
-        + '  border-radius: ' + r + 'px;\n'
-        + '  background: ' + LG.fill(o) + ';\n'
-        + '  backdrop-filter: ' + LG.backdrop(id, o) + ';\n'
-        + '  box-shadow:\n    ' + LG.boxShadowList(o).join(',\n    ') + ';\n'
-        + '  isolation: isolate;\n'
-        + '}\n\n'
-        + '/* Safari and Firefox: no SVG lens, so use frosted glass */\n'
-        + '.no-lens .glass-card {\n'
-        + '  backdrop-filter: ' + fb + ';\n'
-        + '  -webkit-backdrop-filter: ' + fb + ';\n'
-        + '}\n\n'
-        + '<!-- SVG: paste once anywhere in <body>. Sized for ' + w + '×' + h + 'px. -->\n'
-        + '<svg width="0" height="0" style="position:absolute" aria-hidden="true">\n'
-        + prettyFilter(LG.filterMarkup(id, w, h, o, r)) + '\n'
-        + '</svg>\n\n'
-        + '<!-- JS: one line, flags browsers without the lens -->\n'
-        + '<script>\n'
-        + "  if (!(navigator.userAgentData && navigator.userAgentData.brands.some(function (b) { return /Chromium/.test(b.brand); }))) document.documentElement.classList.add('no-lens');\n"
-        + '<\/script>\n';
+      + '.glass-card {\n'
+      + '  position: relative;\n'
+      + '  width: ' + w + 'px;\n'
+      + '  height: ' + h + 'px;\n'
+      + '  border-radius: ' + r + 'px;\n'
+      + '  background: ' + LG.fill(o) + ';\n'
+      + '  backdrop-filter: ' + LG.backdrop(id, o) + ';\n'
+      + '  box-shadow:\n    ' + LG.boxShadowList(o).join(',\n    ') + ';\n'
+      + '  isolation: isolate;\n'
+      + '}\n\n'
+      + '/* Safari and Firefox: no SVG lens, so use frosted glass */\n'
+      + '.no-lens .glass-card {\n'
+      + '  backdrop-filter: ' + fb + ';\n'
+      + '  -webkit-backdrop-filter: ' + fb + ';\n'
+      + '}\n\n'
+      + '<!-- SVG: paste once anywhere in <body>. Sized for ' + w + '×' + h + 'px. -->\n'
+      + '<svg width="0" height="0" style="position:absolute" aria-hidden="true">\n'
+      + prettyFilter(LG.filterMarkup(id, w, h, o, r)) + '\n'
+      + '</svg>\n\n'
+      + '<!-- JS: one line, flags browsers without the lens -->\n'
+      + '<script>\n'
+      + "  if (!(navigator.userAgentData && navigator.userAgentData.brands.some(function (b) { return /Chromium/.test(b.brand); }))) document.documentElement.classList.add('no-lens');\n"
+      + '<\/script>\n';
   }
 
   var NOTES = {
     script: 'Recommended. Works at any size and redraws the lens when the element resizes.',
     static: 'No library needed, but the SVG is fixed to the current glass size. Generate again if the size changes.',
-    lib: 'Save this as liquid-glass.js next to your page.',
+    lib: 'Minified library. Download it, or save this as liquid-glass.min.js next to your page.',
     json: 'All current settings, for saving or sharing a preset.'
   };
 
@@ -253,9 +253,10 @@
     var out = '';
     if (activeTab === 'script') out = scriptCode();
     else if (activeTab === 'static') out = staticCode();
-    else if (activeTab === 'lib') out = libSource || 'Loading liquid-glass.js…';
+    else if (activeTab === 'lib') out = libSource || 'Loading liquid-glass.min.js…';
     else out = JSON.stringify(state, null, 2);
     $('code').textContent = out;
+    $('code').classList.toggle('wrap', activeTab === 'lib');
     $('resultNote').textContent = NOTES[activeTab];
   }
 
@@ -268,14 +269,14 @@
     });
   });
 
-  fetch('liquid-glass.js').then(function (r) {
+  fetch('dist/liquid-glass.min.js').then(function (r) {
     if (!r.ok) throw new Error(r.status);
     return r.text();
   }).then(function (t) {
     libSource = t;
     if (activeTab === 'lib') writeCode();
   }).catch(function () {
-    libSource = '// Could not load liquid-glass.js. Download it from the project files instead.';
+    libSource = '// Could not load liquid-glass.min.js. Use the Download button instead.';
     if (activeTab === 'lib') writeCode();
   });
 

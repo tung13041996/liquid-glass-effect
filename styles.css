@@ -58,7 +58,7 @@ section { display: grid; gap: 12px; }
 .panel h3 { margin: 4px 0 0; font: 500 11px var(--body); text-transform: uppercase; letter-spacing: .18em; color: var(--accent); }
 .row { display: grid; grid-template-columns: 118px minmax(0, 1fr) 76px; gap: 10px; align-items: center; font-size: 13px; }
 .row input[type=range] { width: 100%; accent-color: var(--accent); }
-.num {
+ .num {
   display: flex; align-items: center; height: 30px; border: 1px solid var(--line); border-radius: 6px;
   background: var(--bg); padding-right: 7px; transition: border-color .15s;
 }
@@ -103,11 +103,14 @@ section { display: grid; gap: 12px; }
 /* Result box */
 .result { border: 1px solid var(--line); border-radius: 14px; background: var(--surface); overflow: hidden; }
 .result-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 8px 8px 12px; border-bottom: 1px solid var(--line); }
+.result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.result-actions a.btn { text-decoration: none; }
 .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
 [role=tab] { font: 500 13px var(--body); border: 0; background: none; color: var(--muted); padding: 7px 10px; border-radius: 7px; cursor: pointer; }
 [role=tab][aria-selected=true] { background: var(--code); color: var(--fg); }
 .result-note { font-size: 13px; color: var(--muted); padding: 10px 16px 0; margin: 0; }
 pre { margin: 0; padding: 16px; overflow: auto; max-height: 520px; font: 12.5px/1.6 var(--mono); background: var(--surface); white-space: pre; }
+pre.wrap { white-space: pre-wrap; word-break: break-all; }
 
 /* Mapping table */
 .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }

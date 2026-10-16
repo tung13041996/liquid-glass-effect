@@ -1,18 +1,18 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Liquid Glass Studio</title>
-  <meta name="claude:viewport-fit-sides" content="cover">
-  <meta name="description" content="Tune a Figma-style liquid glass effect on your own image and copy the CSS, SVG and JS into your site.">
-  <meta property="og:title" content="Liquid Glass Studio">
-  <meta property="og:description" content="Figma Glass parameters, rendered live in CSS. Upload an image, tune it, copy the code.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
-  <link rel="preload" as="image" href="assets/default-bg.webp" type="image/webp">
-  <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Liquid Glass Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Tune a Figma-style liquid glass effect on your own image and copy the CSS, SVG and JS into your site.">
+<meta property="og:title" content="Liquid Glass Studio">
+<meta property="og:description" content="Figma Glass parameters, rendered live in CSS. Upload an image, tune it, copy the code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Jost:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="preload" as="image" href="assets/default-bg.webp" type="image/webp">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
 <div class="wrap">
@@ -66,10 +66,13 @@
         <div class="tabs" role="tablist" aria-label="Code format">
           <button role="tab" id="tab-script" aria-selected="true" aria-controls="code">Responsive (JS)</button>
           <button role="tab" id="tab-static" aria-selected="false" aria-controls="code">Static CSS + SVG</button>
-          <button role="tab" id="tab-lib" aria-selected="false" aria-controls="code">liquid-glass.js</button>
+          <button role="tab" id="tab-lib" aria-selected="false" aria-controls="code">liquid-glass.min.js</button>
           <button role="tab" id="tab-json" aria-selected="false" aria-controls="code">Options JSON</button>
         </div>
-        <button class="btn primary" id="copy" type="button">Copy</button>
+        <div class="result-actions">
+          <a class="btn" href="dist/liquid-glass.min.js" download="liquid-glass.min.js">Download liquid-glass.min.js</a>
+          <button class="btn primary" id="copy" type="button">Copy</button>
+        </div>
       </div>
       <p class="result-note" id="resultNote"></p>
       <pre id="code" role="tabpanel" tabindex="0"></pre>
@@ -81,13 +84,13 @@
     <div class="tablewrap"><table>
       <thead><tr><th>Figma</th><th>CSS / SVG</th></tr></thead>
       <tbody>
-      <tr><td>Fill colour + opacity</td><td><code>background: rgba(…)</code></td></tr>
-      <tr><td>Refraction</td><td><code>feDisplacementMap scale</code>. 100 bends the edges by 160px.</td></tr>
-      <tr><td>Depth</td><td>Width of the curved rim in the displacement map.</td></tr>
-      <tr><td>Splay</td><td>Softness of the map's inner edge. Higher values carry the bend further toward the centre.</td></tr>
-      <tr><td>Dispersion</td><td>Separate red, green and blue displacement passes at slightly different strengths, recombined with <code>screen</code>.</td></tr>
-      <tr><td>Frost</td><td><code>blur()</code> inside <code>backdrop-filter</code>.</td></tr>
-      <tr><td>Light angle + %</td><td>Inset <code>box-shadow</code> highlight on the lit edge, with a fainter rim opposite.</td></tr>
+        <tr><td>Fill colour + opacity</td><td><code>background: rgba(…)</code></td></tr>
+        <tr><td>Refraction</td><td><code>feDisplacementMap scale</code>. 100 bends the edges by 160px.</td></tr>
+        <tr><td>Depth</td><td>Width of the curved rim in the displacement map.</td></tr>
+        <tr><td>Splay</td><td>Softness of the map's inner edge. Higher values carry the bend further toward the centre.</td></tr>
+        <tr><td>Dispersion</td><td>Separate red, green and blue displacement passes at slightly different strengths, recombined with <code>screen</code>.</td></tr>
+        <tr><td>Frost</td><td><code>blur()</code> inside <code>backdrop-filter</code>.</td></tr>
+        <tr><td>Light angle + %</td><td>Inset <code>box-shadow</code> highlight on the lit edge, with a fainter rim opposite.</td></tr>
       </tbody>
     </table></div>
     <ul class="notes">
@@ -101,7 +104,7 @@
   <footer>Liquid Glass Studio. Parameters follow Figma's Glass effect; output is an approximation of Figma's shader.</footer>
 </div>
 
-<script src="liquid-glass.js"></script>
+<script src="dist/liquid-glass.min.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

@@ -14,10 +14,10 @@ Tune the effect visually, then copy production-ready code into your own project.
 - **Custom fill.** Pick any tint colour and opacity for the glass layer.
 - **Precise input.** Every value can be set with its slider or typed directly (↑/↓ steps by 1, Shift+↑/↓ by 10).
 - **Copy-ready output** in four formats:
-    - **Responsive (JS):** recommended; adapts to any element size
-    - **Static CSS + SVG:** no library required, fixed to one size
-    - **liquid-glass.js:** the library source
-    - **Options JSON:** for saving or sharing presets
+  - **Responsive (JS):** recommended; adapts to any element size
+  - **Static CSS + SVG:** no library required, fixed to one size
+  - **liquid-glass.min.js:** the minified library, also available via the Download button
+  - **Options JSON:** for saving or sharing presets
 
 ---
 
@@ -25,10 +25,20 @@ Tune the effect visually, then copy production-ready code into your own project.
 
 ### 1. Add the library
 
-Download [`liquid-glass.js`](https://liquid-glass-effect.netlify.app/liquid-glass.js) and include it on your page.
+Use whichever option suits your project. All of them deliver the same minified file (about 5 KB).
+
+**Download**
+Get `liquid-glass.min.js` from the [latest release](https://github.com/tung13041996/liquid-glass-effect/releases/latest) or with the **Download** button in the [live app](https://liquid-glass-effect.netlify.app/), then include it on your page:
 
 ```html
-<script src="liquid-glass.js"></script>
+<script src="liquid-glass.min.js"></script>
+```
+
+**CDN (jsDelivr)**
+Pin a version tag for production:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/tung13041996/liquid-glass-effect@v1.0.0/dist/liquid-glass.min.js"></script>
 ```
 
 ### 2. Style the element
@@ -128,36 +138,67 @@ Each glass element runs a GPU-heavy filter. For best results, use only a few gla
 
 ## Development
 
-The app is plain HTML, CSS and JavaScript, with no dependencies or build step.
+The app is plain HTML, CSS and JavaScript. Node.js is only needed to build the minified library.
 
 ```bash
 git clone https://github.com/tung13041996/liquid-glass-effect.git
 cd liquid-glass-effect
-npx serve .
+npm install
+npm start          # builds, then serves the app at http://localhost:3000
 ```
 
-Then open http://localhost:3000.
+### Building the library
 
-Use a local server rather than opening `index.html` directly, because the app fetches `liquid-glass.js` to display its source.
+Edit `src/liquid-glass.js`, then run:
+
+```bash
+npm run build      # writes dist/liquid-glass.min.js
+```
+
+Commit `dist/liquid-glass.min.js` together with your source changes. CI fails the build if the committed file is out of date.
+
+### Releasing a new version
+
+1. Update `version` in `package.json` (for example `1.0.1`).
+2. Run `npm run build` and commit.
+3. Tag and push:
+
+   ```bash
+   git tag v1.0.1
+   git push origin main --tags
+   ```
+
+GitHub Actions then publishes a release with `liquid-glass.min.js` attached, and the jsDelivr URL for that tag becomes available.
+
+GitHub's **Download ZIP** and release source archives contain only `dist/liquid-glass.min.js` and this README, configured in `.gitattributes`. To work on the code, clone the repository instead.
 
 ### Project structure
 
 ```
 .
-├── index.html          # App markup
-├── styles.css          # App styles
-├── app.js              # Controls, image upload and code generation
-├── liquid-glass.js     # Reusable library (the file users copy)
+├── src/
+│   └── liquid-glass.js       # Library source (edit this)
+├── dist/
+│   └── liquid-glass.min.js   # Built library (the file users download)
+├── scripts/
+│   └── build.mjs             # Minifies src → dist with Terser
 ├── assets/
-│   └── default-bg.webp # Default preview background
-├── netlify.toml        # Netlify configuration
+│   └── default-bg.webp       # Default preview background
+├── .github/workflows/
+│   ├── ci.yml                # Checks dist is up to date on every push
+│   └── release.yml           # Publishes a release on version tags
+├── index.html                # App markup
+├── styles.css                # App styles
+├── app.js                    # Controls, image upload and code generation
+├── netlify.toml              # Netlify configuration
+├── package.json
 └── README.md
 ```
 
 ### Deployment
 
-The site is deployed on [Netlify](https://www.netlify.com/) from the `main` branch. Pushes to `main` publish automatically, and pull requests get a deploy preview.
-No build command is required; the publish directory is the repository root.
+The app is hosted on [Netlify](https://www.netlify.com/) at https://liquid-glass-effect.netlify.app/.
+No build command is required because the built library is committed; the publish directory is the repository root.
 
 ---
 
