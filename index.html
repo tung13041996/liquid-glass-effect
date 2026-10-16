@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Liquid Glass Studio</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Tune a Figma-style liquid glass effect on your own image and copy the CSS, SVG and JS into your site.">
+<meta property="og:title" content="Liquid Glass Studio">
+<meta property="og:description" content="Figma Glass parameters, rendered live in CSS. Upload an image, tune it, copy the code.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Liquid Glass Studio</h1>
+    <p class="lede">Uses the same parameters as Figma's Glass effect. Upload your own background, tune the glass, then copy the code from the result box.</p>
+  </header>
+
+  <section class="tool" aria-label="Glass editor">
+    <div class="stage-col">
+      <div class="stage" id="stage">
+        <div class="bg" id="bg"></div>
+        <div class="word">PYRO<br>SYSTEM</div>
+        <div class="glass" id="glass">Liquid Glass</div>
+      </div>
+      <div class="stage-bar">
+        <label class="btn primary" for="upload">Upload image</label>
+        <input class="visually-hidden" id="upload" type="file" accept="image/*">
+        <button class="btn" id="clearImage" type="button" hidden>Remove image</button>
+        <button class="btn" id="center" type="button">Center glass</button>
+        <p class="status" id="status"></p>
+      </div>
+      <p class="status">Drag the glass to move it. You can also drop an image onto the preview. Images stay in your browser and are never uploaded.</p>
+    </div>
+
+    <div class="panel" id="panel">
+      <h3>Glass</h3>
+      <div class="row"><label for="lightAngle">Light angle</label><input id="lightAngle" type="range" min="-180" max="180"><output for="lightAngle"></output></div>
+      <div class="row"><label for="lightIntensity">Light</label><input id="lightIntensity" type="range" min="0" max="100"><output for="lightIntensity"></output></div>
+      <div class="row"><label for="refraction">Refraction</label><input id="refraction" type="range" min="0" max="100"><output for="refraction"></output></div>
+      <div class="row"><label for="depth">Depth</label><input id="depth" type="range" min="1" max="100"><output for="depth"></output></div>
+      <div class="row"><label for="dispersion">Dispersion</label><input id="dispersion" type="range" min="0" max="100"><output for="dispersion"></output></div>
+      <div class="row"><label for="frost">Frost</label><input id="frost" type="range" min="0" max="100"><output for="frost"></output></div>
+      <div class="row"><label for="splay">Splay</label><input id="splay" type="range" min="0" max="100"><output for="splay"></output></div>
+      <div class="sep"></div>
+      <h3>Layer</h3>
+      <div class="color-row">
+        <label for="fillColorText">Fill colour</label>
+        <input id="fillColor" type="color" aria-label="Pick fill colour">
+        <input id="fillColorText" type="text" spellcheck="false" autocomplete="off" maxlength="7">
+      </div>
+      <div class="row"><label for="fillOpacity">Fill opacity</label><input id="fillOpacity" type="range" min="0" max="100"><output for="fillOpacity"></output></div>
+      <div class="row"><label for="radius">Radius</label><input id="radius" type="range" min="0" max="250"><output for="radius"></output></div>
+      <div class="row"><label for="width">Width</label><input id="width" type="range" min="80" max="800"><output for="width"></output></div>
+      <div class="row"><label for="height">Height</label><input id="height" type="range" min="60" max="480"><output for="height"></output></div>
+      <div class="sep"></div>
+      <button class="btn" id="reset" type="button">Reset to Figma values</button>
+    </div>
+  </section>
+
+  <section aria-label="Result">
+    <h2>Your code</h2>
+    <div class="result">
+      <div class="result-head">
+        <div class="tabs" role="tablist" aria-label="Code format">
+          <button role="tab" id="tab-script" aria-selected="true" aria-controls="code">Responsive (JS)</button>
+          <button role="tab" id="tab-static" aria-selected="false" aria-controls="code">Static CSS + SVG</button>
+          <button role="tab" id="tab-lib" aria-selected="false" aria-controls="code">liquid-glass.js</button>
+          <button role="tab" id="tab-json" aria-selected="false" aria-controls="code">Options JSON</button>
+        </div>
+        <button class="btn primary" id="copy" type="button">Copy</button>
+      </div>
+      <p class="result-note" id="resultNote"></p>
+      <pre id="code" role="tabpanel" tabindex="0"></pre>
+    </div>
+  </section>
+
+  <section aria-label="Parameter mapping">
+    <h2>How the Figma parameters map</h2>
+    <div class="tablewrap"><table>
+      <thead><tr><th>Figma</th><th>CSS / SVG</th></tr></thead>
+      <tbody>
+        <tr><td>Fill colour + opacity</td><td><code>background: rgba(…)</code></td></tr>
+        <tr><td>Refraction</td><td><code>feDisplacementMap scale</code>. 100 bends the edges by 160px.</td></tr>
+        <tr><td>Depth</td><td>Width of the curved rim in the displacement map.</td></tr>
+        <tr><td>Splay</td><td>Softness of the map's inner edge. Higher values carry the bend further toward the centre.</td></tr>
+        <tr><td>Dispersion</td><td>Separate red, green and blue displacement passes at slightly different strengths, recombined with <code>screen</code>.</td></tr>
+        <tr><td>Frost</td><td><code>blur()</code> inside <code>backdrop-filter</code>.</td></tr>
+        <tr><td>Light angle + %</td><td>Inset <code>box-shadow</code> highlight on the lit edge, with a fainter rim opposite.</td></tr>
+        <tr><td>Radius</td><td><code>border-radius</code> and the map's inner corner. Both are kept in sync.</td></tr>
+      </tbody>
+    </table></div>
+    <ul class="notes">
+      <li>Refraction and dispersion render in Chrome, Edge and other Chromium browsers. Safari and Firefox cannot use an SVG filter in <code>backdrop-filter</code>, so they get frosted glass with the same fill and highlight.</li>
+      <li>The responsive version redraws the displacement map when the element resizes. The static version is fixed to the size shown in the preview.</li>
+      <li>Each lens element is GPU-heavy. Keep it to a few per screen and avoid animating their size.</li>
+    </ul>
+  </section>
+
+  <footer>Liquid Glass Studio. Parameters follow Figma's Glass effect; output is an approximation of Figma's shader.</footer>
+</div>
+
+<script src="liquid-glass.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
