@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Liquid Glass Studio</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Tune a Figma-style liquid glass effect on your own image and copy the CSS, SVG and JS into your site.">
+<meta name="description" content="Tune a Figma-style liquid glass effect on your own image and copy the code into your site. Rendered with WebGL.">
 <meta property="og:title" content="Liquid Glass Studio">
 <meta property="og:description" content="Figma Glass parameters, rendered live in CSS. Upload an image, tune it, copy the code.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -39,13 +39,13 @@
 
     <div class="panel" id="panel">
       <h3>Glass</h3>
-      <div class="row"><div class="lbl"><label for="lightAngle">Light angle</label><button class="info" type="button" aria-label="About Light angle" aria-describedby="tip-lightAngle">i</button><span class="tip" role="tooltip" id="tip-lightAngle">Direction the light comes from. The bright highlight sits on that edge of the glass, with a fainter rim on the opposite edge. −45° lights the top-left.</span></div><input id="lightAngle" type="range" min="-180" max="180"><span class="num"><input id="lightAngle-num" type="number" min="-180" max="180" step="1" inputmode="numeric" aria-label="Light angle value"><span class="unit">°</span></span></div>
-      <div class="row"><div class="lbl"><label for="lightIntensity">Light</label><button class="info" type="button" aria-label="About Light" aria-describedby="tip-lightIntensity">i</button><span class="tip" role="tooltip" id="tip-lightIntensity">Strength of the edge highlight. 0% removes it; 100% gives a bright, crisp rim.</span></div><input id="lightIntensity" type="range" min="0" max="100"><span class="num"><input id="lightIntensity-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Light value"><span class="unit">%</span></span></div>
-      <div class="row"><div class="lbl"><label for="refraction">Refraction</label><button class="info" type="button" aria-label="About Refraction" aria-describedby="tip-refraction">i</button><span class="tip" role="tooltip" id="tip-refraction">How strongly the glass bends what is behind it near the edges. 0 is flat glass; 100 is a strong lens.</span></div><input id="refraction" type="range" min="0" max="100"><span class="num"><input id="refraction-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Refraction value"></span></div>
-      <div class="row"><div class="lbl"><label for="depth">Depth</label><button class="info" type="button" aria-label="About Depth" aria-describedby="tip-depth">i</button><span class="tip" role="tooltip" id="tip-depth">Thickness of the curved rim. Low values keep the bend in a thin band at the edge; high values make a wider bevel.</span></div><input id="depth" type="range" min="1" max="100"><span class="num"><input id="depth-num" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="Depth value"></span></div>
-      <div class="row"><div class="lbl"><label for="dispersion">Dispersion</label><button class="info" type="button" aria-label="About Dispersion" aria-describedby="tip-dispersion">i</button><span class="tip" role="tooltip" id="tip-dispersion">Splits red, green and blue slightly apart where the glass bends, creating a rainbow fringe. 0 turns it off.</span></div><input id="dispersion" type="range" min="0" max="100"><span class="num"><input id="dispersion-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Dispersion value"></span></div>
-      <div class="row"><div class="lbl"><label for="frost">Frost</label><button class="info" type="button" aria-label="About Frost" aria-describedby="tip-frost">i</button><span class="tip" role="tooltip" id="tip-frost">Blurs the background seen through the glass. 0 is clear glass; higher values look like frosted glass.</span></div><input id="frost" type="range" min="0" max="100"><span class="num"><input id="frost-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Frost value"></span></div>
-      <div class="row"><div class="lbl"><label for="splay">Splay</label><button class="info" type="button" aria-label="About Splay" aria-describedby="tip-splay">i</button><span class="tip" role="tooltip" id="tip-splay">How far the bend spreads toward the centre. Low values keep it tight to the edge; high values fade it in gradually.</span></div><input id="splay" type="range" min="0" max="100"><span class="num"><input id="splay-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Splay value"></span></div>
+      <div class="row"><div class="lbl"><label for="lightAngle">Light angle</label><button class="info" type="button" aria-label="About Light angle" aria-describedby="tip-lightAngle">i</button><span class="tip" role="tooltip" id="tip-lightAngle">Direction the light comes from. The bright 1px rim sits on the edge facing the light, with a slightly dimmer rim on the opposite edge. −45° lights the top-left.</span></div><input id="lightAngle" type="range" min="-180" max="180"><span class="num"><input id="lightAngle-num" type="number" min="-180" max="180" step="1" inputmode="numeric" aria-label="Light angle value"><span class="unit">°</span></span></div>
+      <div class="row"><div class="lbl"><label for="lightIntensity">Light</label><button class="info" type="button" aria-label="About Light" aria-describedby="tip-lightIntensity">i</button><span class="tip" role="tooltip" id="tip-lightIntensity">Brightness of the light on the glass: the 1px rim and the soft glow inside the curved edge. 0% removes both.</span></div><input id="lightIntensity" type="range" min="0" max="100"><span class="num"><input id="lightIntensity-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Light value"><span class="unit">%</span></span></div>
+      <div class="row"><div class="lbl"><label for="refraction">Refraction</label><button class="info" type="button" aria-label="About Refraction" aria-describedby="tip-refraction">i</button><span class="tip" role="tooltip" id="tip-refraction">How strongly the curved edge bends the image. At 100 the very edge shows the image from a full Depth further inside; the bend fades toward the inner side of the curve.</span></div><input id="refraction" type="range" min="0" max="100"><span class="num"><input id="refraction-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Refraction value"></span></div>
+      <div class="row"><div class="lbl"><label for="depth">Depth</label><button class="info" type="button" aria-label="About Depth" aria-describedby="tip-depth">i</button><span class="tip" role="tooltip" id="tip-depth">How far the curved edge reaches inward from the border, in pixels. Higher values make a more domed glass. It is capped at half the shorter side.</span></div><input id="depth" type="range" min="1" max="100"><span class="num"><input id="depth-num" type="number" min="1" max="100" step="1" inputmode="numeric" aria-label="Depth value"></span></div>
+      <div class="row"><div class="lbl"><label for="dispersion">Dispersion</label><button class="info" type="button" aria-label="About Dispersion" aria-describedby="tip-dispersion">i</button><span class="tip" role="tooltip" id="tip-dispersion">Rainbow splitting along the curved edge: red bends a little more and blue a little less than green. Only visible where the glass bends.</span></div><input id="dispersion" type="range" min="0" max="100"><span class="num"><input id="dispersion-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Dispersion value"></span></div>
+      <div class="row"><div class="lbl"><label for="frost">Frost</label><button class="info" type="button" aria-label="About Frost" aria-describedby="tip-frost">i</button><span class="tip" role="tooltip" id="tip-frost">Background blur on the glass. The blur radius is about half the Frost value in pixels.</span></div><input id="frost" type="range" min="0" max="100"><span class="num"><input id="frost-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Frost value"></span></div>
+      <div class="row"><div class="lbl"><label for="splay">Splay</label><button class="info" type="button" aria-label="About Splay" aria-describedby="tip-splay">i</button><span class="tip" role="tooltip" id="tip-splay">How far the projected light spreads over the glass. It changes the soft glow, not the refraction.</span></div><input id="splay" type="range" min="0" max="100"><span class="num"><input id="splay-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Splay value"></span></div>
       <div class="sep"></div>
       <h3>Layer</h3>
       <div class="color-row">
@@ -56,6 +56,21 @@
       <div class="row"><div class="lbl"><label for="fillOpacity">Fill opacity</label><button class="info" type="button" aria-label="About Fill opacity" aria-describedby="tip-fillOpacity">i</button><span class="tip" role="tooltip" id="tip-fillOpacity">How strong the tint is. 0% is fully clear; higher values make the colour more solid.</span></div><input id="fillOpacity" type="range" min="0" max="100"><span class="num"><input id="fillOpacity-num" type="number" min="0" max="100" step="1" inputmode="numeric" aria-label="Fill opacity value"><span class="unit">%</span></span></div>
       <div class="row"><div class="lbl"><label for="width">Width</label><button class="info" type="button" aria-label="About Width" aria-describedby="tip-width">i</button><span class="tip" role="tooltip" id="tip-width">Width of the glass in the preview. The static CSS output uses this exact size.</span></div><input id="width" type="range" min="80" max="800"><span class="num"><input id="width-num" type="number" min="80" max="800" step="1" inputmode="numeric" aria-label="Width value"><span class="unit">px</span></span></div>
       <div class="row"><div class="lbl"><label for="height">Height</label><button class="info" type="button" aria-label="About Height" aria-describedby="tip-height">i</button><span class="tip" role="tooltip" id="tip-height">Height of the glass in the preview. The static CSS output uses this exact size.</span></div><input id="height" type="range" min="60" max="480"><span class="num"><input id="height-num" type="number" min="60" max="480" step="1" inputmode="numeric" aria-label="Height value"><span class="unit">px</span></span></div>
+      <div class="sep"></div>
+      <h3>Edge</h3>
+      <div class="select-row"><div class="lbl"><label for="tear">Torn edge</label><button class="info" type="button" aria-label="About Torn edge" aria-describedby="tip-tear">i</button><span class="tip" role="tooltip" id="tip-tear">Cuts a torn-paper edge into one side of the glass, like the Figma Glass edge in your design. The glass, its refraction and the tint are all cut along the tear.</span></div>
+        <select id="tear">
+          <option value="none">None</option>
+          <option value="top">Top</option>
+          <option value="bottom">Bottom</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+      </div>
+      <div class="row"><div class="lbl"><label for="tearDepth">Tear depth</label><button class="info" type="button" aria-label="About Tear depth" aria-describedby="tip-tearDepth">i</button><span class="tip" role="tooltip" id="tip-tearDepth">How far the tear reaches into the glass, in pixels. 4–10px looks like a fine paper edge.</span></div><input id="tearDepth" type="range" min="0" max="40"><span class="num"><input id="tearDepth-num" type="number" min="0" max="40" step="1" inputmode="numeric" aria-label="Tear depth value"><span class="unit">px</span></span></div>
+      <div class="select-row"><div class="lbl"><label for="tearSeed">Pattern</label><button class="info" type="button" aria-label="About Pattern" aria-describedby="tip-tearSeed">i</button><span class="tip" role="tooltip" id="tip-tearSeed">Picks a different random tear shape. The same number always gives the same shape.</span></div>
+        <button class="btn" id="tearShuffle" type="button">Shuffle pattern</button>
+      </div>
     </div>
   </section>
 
@@ -65,7 +80,7 @@
       <div class="result-head">
         <div class="tabs" role="tablist" aria-label="Code format">
           <button role="tab" id="tab-script" aria-selected="true" aria-controls="code">Responsive (JS)</button>
-          <button role="tab" id="tab-static" aria-selected="false" aria-controls="code">Static CSS + SVG</button>
+          <button role="tab" id="tab-attr" aria-selected="false" aria-controls="code">Data attribute</button>
           <button role="tab" id="tab-lib" aria-selected="false" aria-controls="code">liquid-glass.min.js</button>
           <button role="tab" id="tab-json" aria-selected="false" aria-controls="code">Options JSON</button>
         </div>
@@ -82,22 +97,25 @@
   <section aria-label="Parameter mapping">
     <h2>How the Figma parameters map</h2>
     <div class="tablewrap"><table>
-      <thead><tr><th>Figma</th><th>CSS / SVG</th></tr></thead>
+      <thead><tr><th>Figma</th><th>WebGL shader</th></tr></thead>
       <tbody>
-        <tr><td>Fill colour + opacity</td><td><code>background: rgba(…)</code></td></tr>
-        <tr><td>Refraction</td><td><code>feDisplacementMap scale</code>. 100 bends the edges by 160px.</td></tr>
-        <tr><td>Depth</td><td>Width of the curved rim in the displacement map.</td></tr>
-        <tr><td>Splay</td><td>Softness of the map's inner edge. Higher values carry the bend further toward the centre.</td></tr>
-        <tr><td>Dispersion</td><td>Separate red, green and blue displacement passes at slightly different strengths, recombined with <code>screen</code>.</td></tr>
-        <tr><td>Frost</td><td><code>blur()</code> inside <code>backdrop-filter</code>.</td></tr>
-        <tr><td>Light angle + %</td><td>Inset <code>box-shadow</code> highlight on the lit edge, with a fainter rim opposite.</td></tr>
+        <tr><td>Refraction</td><td>The glass acts as one lens. Within Depth of the edge, each pixel shows the image from further inside, along the normal of a pill-shaped curve. The bend at the edge is Refraction × Depth px and fades inward as t<sup>3.5</sup>.</td></tr>
+        <tr><td>Depth</td><td>Width of the curved edge in pixels, capped at half the shorter side.</td></tr>
+        <tr><td>Splay</td><td>Spread of the soft light inside the curved edge. It does not change the refraction.</td></tr>
+        <tr><td>Dispersion</td><td>Red is sampled with 10% more bend and blue with 10% less than green at 100. Three texture reads in the same pass.</td></tr>
+        <tr><td>Frost</td><td>Gaussian blur of the source image with radius Frost ÷ 2 px, computed once per image, not per frame.</td></tr>
+        <tr><td>Fill colour + opacity</td><td>Blended over the refracted image inside the shader.</td></tr>
+        <tr><td>Light angle + %</td><td>A 1px rim, brightest where the edge faces the light, plus a faint glow inside the curve with an <code>overlay</code> blend.</td></tr>
+        <tr><td>Torn edge</td><td><code>mask-image</code> with a generated speckled tear along one side, applied to the glass layer.</td></tr>
       </tbody>
     </table></div>
     <ul class="notes">
-      <li>Refraction and dispersion render in Chrome, Edge and other Chromium browsers. Safari and Firefox cannot use an SVG filter in <code>backdrop-filter</code>, so they get frosted glass with the same fill and highlight.</li>
-      <li>Corner radius comes from your own CSS <code>border-radius</code>. The script reads it, so the lens always matches the shape.</li>
-      <li>The responsive version redraws the displacement map when the element resizes. The static version is fixed to the size shown in the preview.</li>
-      <li>Each lens element is GPU-heavy. Keep it to a few per screen and avoid animating their size.</li>
+      <li>The glass refracts a known background: a <code>background-image</code>, <code>&lt;img&gt;</code> or <code>&lt;video&gt;</code> behind it. It cannot bend live page content such as text, so use it for glass over images and video.</li>
+      <li>Works in Chrome, Edge, Safari and Firefox. One WebGL context is shared by every glass on the page, and each glass is redrawn only when its size, position or image changes.</li>
+      <li>Where WebGL is missing or runs without a GPU (old or blocklisted graphics drivers), the glass falls back to frosted CSS glass with the same fill and highlight.</li>
+      <li>Images from another domain need CORS headers to be used as a texture. Images in your own media library are fine.</li>
+      <li>Corner radius comes from your own CSS <code>border-radius</code>. Put content in a sibling with <code>position: relative; z-index: 1</code> so it sits above the glass.</li>
+      <li>The formulas were measured against Figma's own render of a real Glass layer, pixel by pixel. Figma does not publish its shader, so results are very close but not pixel-identical. Note that Figma's fill is part of the layer: if your layer uses a black 10% fill, set the fill colour to #000000.</li>
     </ul>
   </section>
 

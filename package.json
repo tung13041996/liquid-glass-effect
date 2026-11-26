@@ -1,6 +1,6 @@
 {
   "name": "liquid-glass-effect",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "description": "Figma-style Glass effect for the web with CSS, SVG and a small JavaScript helper.",
   "private": true,
   "main": "dist/liquid-glass.min.js",
