@@ -41,7 +41,7 @@ Get `liquid-glass.min.js` from the [latest release](https://github.com/tung13041
 Pin a version tag for production:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/tung13041996/liquid-glass-effect@v2.1.1/dist/liquid-glass.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tung13041996/liquid-glass-effect@v2.1.2/dist/liquid-glass.min.js"></script>
 ```
 
 ### 2. Structure: background, glass layer, content

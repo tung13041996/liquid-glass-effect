@@ -221,14 +221,28 @@
 
   function getGL(allowSoftware) {
     if (G) return G.lost ? null : G;
-    var canvas = document.createElement('canvas');
     var attrs = { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false,
-      preserveDrawingBuffer: true, failIfMajorPerformanceCaveat: !allowSoftware };  // copied into each glass canvas right after drawing
-    var gl = null;
-    try { gl = canvas.getContext('webgl2', attrs) || canvas.getContext('webgl', attrs); } catch (e) { gl = null; }
+      preserveDrawingBuffer: false, failIfMajorPerformanceCaveat: !allowSoftware };
+    function ctxOf(c) {
+      try { return c.getContext('webgl2', attrs) || c.getContext('webgl', attrs); } catch (e) { return null; }
+    }
+    // Preferred: render on an OffscreenCanvas and hand each frame to the glass's
+    // own canvas with transferToImageBitmap, which always delivers the frame just drawn.
+    // Fallback: a detached <canvas> copied with drawImage (drawing buffer kept so the copy is current).
+    var canvas = null, gl = null, offscreen = false;
+    if (typeof OffscreenCanvas !== 'undefined' && typeof ImageBitmapRenderingContext !== 'undefined') {
+      canvas = new OffscreenCanvas(1, 1);
+      gl = ctxOf(canvas);
+      offscreen = !!gl && typeof canvas.transferToImageBitmap === 'function';
+    }
+    if (!offscreen) {
+      canvas = document.createElement('canvas');
+      attrs.preserveDrawingBuffer = true;
+      gl = ctxOf(canvas);
+    }
     if (!gl) return null;
     if (!allowSoftware && isSoftware(gl)) return null;
-    G = { gl: gl, canvas: canvas, lost: false };
+    G = { gl: gl, canvas: canvas, offscreen: offscreen, lost: false };
     try { setupGL(); } catch (e) { G = null; return null; }
     canvas.addEventListener('webglcontextlost', function (e) {
       e.preventDefault(); G.lost = true;
@@ -593,7 +607,7 @@
         canvas.setAttribute('aria-hidden', 'true');
         canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none;display:block;border-radius:inherit';
         el.insertBefore(canvas, el.firstChild);
-        ctx2d = canvas.getContext('2d');
+        ctx2d = canvas.getContext(G && G.offscreen ? 'bitmaprenderer' : '2d');
       }
       canvas.style.display = 'block';
     }
@@ -616,7 +630,6 @@
       var dpr = clamp(Math.min(root.devicePixelRatio || 1, o.maxDpr), 0.5, 3);
       var W = Math.max(1, Math.min(MAX_CANVAS, Math.round(w * dpr))), H = Math.max(1, Math.min(MAX_CANVAS, Math.round(h * dpr)));
       var c = G.canvas;
-      if (c.width < W || c.height < H) { c.width = Math.max(c.width, W); c.height = Math.max(c.height, H); }
 
       var d = drawRect(s.el, s.nw, s.nh);
       var frostPx = clamp(o.frost, 0, 100) * K.frost;
@@ -627,6 +640,8 @@
       var a = o.lightAngle * Math.PI / 180, lx = Math.sin(a), ly = -Math.cos(a);
       var fc = hexToRgb(o.fillColor);
       var P = G.glass, u = P.u;
+      if (G.offscreen) { if (c.width !== W || c.height !== H) { c.width = W; c.height = H; } }
+      else if (c.width < W || c.height < H) { c.width = Math.max(c.width, W); c.height = Math.max(c.height, H); }
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       gl.viewport(0, 0, W, H);
       gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
@@ -651,8 +666,12 @@
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
       if (canvas.width !== W || canvas.height !== H) { canvas.width = W; canvas.height = H; }
-      else ctx2d.clearRect(0, 0, W, H);
-      ctx2d.drawImage(c, 0, c.height - H, W, H, 0, 0, W, H);
+      if (G.offscreen) {
+        ctx2d.transferFromImageBitmap(c.transferToImageBitmap());
+      } else {
+        ctx2d.clearRect(0, 0, W, H);
+        ctx2d.drawImage(c, 0, c.height - H, W, H, 0, 0, W, H);
+      }
     }
 
     // Called by the shared frame loop. Returns true to keep the loop running.
