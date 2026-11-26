@@ -223,7 +223,7 @@
     if (G) return G.lost ? null : G;
     var canvas = document.createElement('canvas');
     var attrs = { alpha: true, premultipliedAlpha: true, antialias: false, depth: false, stencil: false,
-      preserveDrawingBuffer: false, failIfMajorPerformanceCaveat: !allowSoftware };
+      preserveDrawingBuffer: true, failIfMajorPerformanceCaveat: !allowSoftware };  // copied into each glass canvas right after drawing
     var gl = null;
     try { gl = canvas.getContext('webgl2', attrs) || canvas.getContext('webgl', attrs); } catch (e) { gl = null; }
     if (!gl) return null;
@@ -513,13 +513,16 @@
   /* ------------------------------------------------------------------ *
    * Redraw scheduling: only glass that is visible and has changed
    * ------------------------------------------------------------------ */
-  var frameReq = 0, watching = false;
+  var frameReq = 0, watching = false, settleUntil = 0;
 
   function tick() {
     frameReq = 0;
-    var again = false;
-    instances.forEach(function (i) { if (i._tick()) again = true; });
-    if (again) frameReq = requestAnimationFrame(tick);
+    var again = false, settling = performance.now() < settleUntil;
+    instances.forEach(function (i) {
+      if (settling && i._visible) i._dirtyGeom = true;   // re-check positions while things may still move
+      if (i._tick()) again = true;
+    });
+    if (again || settling) frameReq = requestAnimationFrame(tick);
   }
 
   function requestTick() { if (!frameReq) frameReq = requestAnimationFrame(tick); }
@@ -530,11 +533,25 @@
     requestTick();
   }
 
+  // Anything that can move a glass or its background without resizing it:
+  // dragging, hover/click effects, CSS transitions and animations. For a short
+  // time after such an event, positions are re-checked every frame; the glass is
+  // only redrawn if it actually moved relative to its background.
+  function onInteract(e) {
+    var ms = /^(transitionrun|transitionstart|animationstart|animationiteration)$/.test(e.type) ? 1200 : 400;
+    settleUntil = Math.max(settleUntil, performance.now() + ms);
+    onScroll();
+  }
+
   function watch() {
     if (watching) return;
     watching = true;
-    root.addEventListener('scroll', onScroll, { passive: true, capture: true });
+    var opt = { passive: true, capture: true };
+    root.addEventListener('scroll', onScroll, opt);
     root.addEventListener('resize', onScroll, { passive: true });
+    ['pointerdown', 'pointermove', 'pointerup', 'touchmove', 'wheel', 'keyup', 'click',
+      'transitionrun', 'transitionstart', 'transitionend', 'animationstart', 'animationiteration', 'animationend'
+    ].forEach(function (t) { root.addEventListener(t, onInteract, opt); });
   }
 
   /* ------------------------------------------------------------------ *

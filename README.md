@@ -41,7 +41,7 @@ Get `liquid-glass.min.js` from the [latest release](https://github.com/tung13041
 Pin a version tag for production:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/tung13041996/liquid-glass-effect@v2.1.0/dist/liquid-glass.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/tung13041996/liquid-glass-effect@v2.1.1/dist/liquid-glass.min.js"></script>
 ```
 
 ### 2. Structure: background, glass layer, content
@@ -125,13 +125,13 @@ const glass = LiquidGlass.apply(element, options);
 const all = LiquidGlass.init('[data-liquid-glass]', sharedOptions);  // returns an array
 
 glass.update({ refraction: 60 }); // change options and redraw
-glass.redraw();                   // call after moving the glass or its background with JS
+glass.redraw();                   // only needed if JS moves the glass with no user interaction (e.g. a timer)
 glass.refresh();                  // redraw everything; reloads the image if its URL changed
 glass.destroy();                  // remove the canvas, mask and styles
 glass.renderer;                   // 'webgl' or 'css' (fallback)
 ```
 
-The glass redraws automatically when it or its background is resized, on scroll (for parallax and sticky layouts), and while a `<video>` source plays. It is skipped while off screen.
+The glass redraws automatically when it or its background is resized or moved: on scroll (parallax, sticky layouts), while dragging or after any pointer, touch or keyboard interaction, during CSS transitions and animations, and while a `<video>` source plays. Positions are re-checked cheaply for a short time after each of these events, and the glass is only redrawn if it actually moved. It is skipped while off screen.
 
 ---
 
