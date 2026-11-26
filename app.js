@@ -3,9 +3,12 @@
   var LG = window.LiquidGlass;
   var $ = function (id) { return document.getElementById(id); };
 
-  var FIGMA = Object.assign({}, LG.DEFAULTS, { width: 420, height: 260 });
+  var INTERNAL = ['source', 'maxDpr', 'live', 'allowSoftware'];   // not shown in the panel
+  var KEYS = Object.keys(LG.DEFAULTS).filter(function (k) { return INTERNAL.indexOf(k) < 0; });
+  var FIGMA = { width: 420, height: 260 };
+  KEYS.forEach(function (k) { FIGMA[k] = LG.DEFAULTS[k]; });
   var state = Object.assign({}, FIGMA);
-  var RANGES = ['lightAngle', 'lightIntensity', 'refraction', 'depth', 'dispersion', 'frost', 'splay', 'fillOpacity', 'width', 'height'];
+  var RANGES = ['lightAngle', 'lightIntensity', 'refraction', 'depth', 'dispersion', 'frost', 'splay', 'fillOpacity', 'width', 'height', 'tearDepth'];
 
   var stage = $('stage'), glass = $('glass'), bg = $('bg');
   var activeTab = 'script';
@@ -14,7 +17,7 @@
   /* ---------- glass ---------- */
   function glassOptions() {
     var o = {};
-    Object.keys(LG.DEFAULTS).forEach(function (k) { o[k] = state[k]; });
+    KEYS.forEach(function (k) { o[k] = state[k]; });
     return o;
   }
   function applySize() {
@@ -22,11 +25,15 @@
     glass.style.height = state.height + 'px';
   }
   applySize();
-  var inst = LG.apply(glass, glassOptions());
+  var inst = LG.apply(glass, Object.assign(glassOptions(), { source: bg }));
 
-  $('status').innerHTML = inst.lens
-    ? '<b>Lens on.</b> Full refraction in this browser.'
-    : '<b>Frosted fallback.</b> Open in Chrome or Edge for refraction.';
+  function showStatus() {
+    $('status').innerHTML = inst.renderer === 'webgl'
+      ? '<b>WebGL on.</b> Full glass, drawn on the GPU.'
+      : '<b>CSS fallback.</b> No hardware WebGL here, so the glass is frosted only.';
+  }
+  setTimeout(showStatus, 800);
+  setInterval(showStatus, 2000);
 
   /* ---------- controls ---------- */
   function syncControls() {
@@ -38,6 +45,7 @@
     $('fillColor').value = state.fillColor;
     $('fillColorText').value = state.fillColor;
     $('fillColorText').removeAttribute('aria-invalid');
+    $('tear').value = state.tear;
   }
   var raf = 0;
   function refresh() {
@@ -102,6 +110,15 @@
   });
 
 
+  $('tear').addEventListener('change', function (e) {
+    state.tear = e.target.value;
+    refresh();
+  });
+  $('tearShuffle').addEventListener('click', function () {
+    state.tearSeed = 1 + Math.floor(Math.random() * 9999);
+    refresh();
+  });
+
   $('fillColor').addEventListener('input', function (e) {
     state.fillColor = e.target.value;
     $('fillColorText').value = state.fillColor;
@@ -137,6 +154,7 @@
     objectUrl = URL.createObjectURL(file);
     bg.style.backgroundImage = 'url("' + objectUrl + '")';
     stage.classList.add('has-image');
+    inst.refresh();
     $('clearImage').hidden = false;
   }
   $('upload').addEventListener('change', function (e) { setImage(e.target.files[0]); e.target.value = ''; });
@@ -145,6 +163,7 @@
     objectUrl = null;
     bg.style.backgroundImage = '';
     stage.classList.remove('has-image');
+    inst.refresh();
     $('clearImage').hidden = true;
   });
   ['dragenter', 'dragover'].forEach(function (t) {
@@ -172,10 +191,12 @@
     glass.style.transform = 'none';
     glass.style.left = Math.max(-glass.offsetWidth / 2, Math.min(x, sr.width - glass.offsetWidth / 2)) + 'px';
     glass.style.top = Math.max(-glass.offsetHeight / 2, Math.min(y, sr.height - glass.offsetHeight / 2)) + 'px';
+    inst.redraw();
   });
   ['pointerup', 'pointercancel'].forEach(function (t) { glass.addEventListener(t, function () { drag = null; }); });
   $('center').addEventListener('click', function () {
     glass.style.left = '50%'; glass.style.top = '50%'; glass.style.transform = 'translate(-50%, -50%)';
+    inst.redraw();
   });
 
   /* ---------- code output ---------- */
@@ -187,64 +208,56 @@
   }
 
   function radius() {
-    return Math.round(LG.readRadius(glass, glass.offsetWidth, glass.offsetHeight));
+    return Math.round(parseFloat(getComputedStyle(glass).borderTopLeftRadius) || 0);
   }
 
   function scriptCode() {
-    return '<!-- 1. Your element -->\n'
-      + '<div class="glass-card">Your content</div>\n\n'
-      + '<!-- 2. Size and round it in CSS. The lens follows its real size and border-radius. -->\n'
-      + '<style>\n  .glass-card { position: relative; width: ' + state.width + 'px; max-width: 100%; height: ' + state.height + 'px; border-radius: ' + radius() + 'px; }\n</style>\n\n'
+    return '<!-- 1. Structure: background, glass layer, content -->\n'
+      + '<div class="glass-card">\n'
+      + '  <img class="glass-card__image" src="your-image.jpg" alt="">\n'
+      + '  <div class="glass-card__glass" data-liquid-glass></div>\n'
+      + '  <div class="glass-card__content">Your content</div>\n'
+      + '</div>\n\n'
+      + '<!-- 2. CSS: the content sits above the glass; the glass reads its size and radius from here -->\n'
+      + '<style>\n'
+      + '  .glass-card { position: relative; }\n'
+      + '  .glass-card__image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }\n'
+      + '  .glass-card__glass { position: absolute; left: 40px; top: 40px; width: ' + state.width + 'px; max-width: calc(100% - 80px); height: ' + state.height + 'px; border-radius: ' + radius() + 'px; }\n'
+      + '  .glass-card__content { position: relative; z-index: 1; }\n'
+      + '</style>\n\n'
       + '<!-- 3. Load liquid-glass.min.js (use the Download button) and apply -->\n'
       + '<script src="liquid-glass.min.js"><\/script>\n'
       + '<script>\n'
-      + "  document.querySelectorAll('.glass-card').forEach(function (el) {\n"
-      + '    LiquidGlass.apply(el, ' + optionsLiteral('    ') + ');\n'
+      + "  document.querySelectorAll('.glass-card__glass').forEach(function (el) {\n"
+      + "    LiquidGlass.apply(el, Object.assign({ source: '.glass-card__image' }, " + optionsLiteral('    ') + '));\n'
       + '  });\n'
       + '<\/script>\n';
   }
 
-  function prettyFilter(markup) {
-    return markup
-      .replace(/></g, '>\n<')
-      .split('\n')
-      .map(function (l) { return /^<\/?filter/.test(l) ? '  ' + l : '    ' + l; })
-      .join('\n');
-  }
-
-  function staticCode() {
-    var w = Math.round(glass.offsetWidth), h = Math.round(glass.offsetHeight);
-    var o = glassOptions(), id = 'lg-glass', r = radius();
-    var fb = LG.fallbackBackdrop(o);
-    return '/* CSS */\n'
-      + '.glass-card {\n'
-      + '  position: relative;\n'
-      + '  width: ' + w + 'px;\n'
-      + '  height: ' + h + 'px;\n'
-      + '  border-radius: ' + r + 'px;\n'
-      + '  background: ' + LG.fill(o) + ';\n'
-      + '  backdrop-filter: ' + LG.backdrop(id, o) + ';\n'
-      + '  box-shadow:\n    ' + LG.boxShadowList(o).join(',\n    ') + ';\n'
-      + '  isolation: isolate;\n'
-      + '}\n\n'
-      + '/* Safari and Firefox: no SVG lens, so use frosted glass */\n'
-      + '.no-lens .glass-card {\n'
-      + '  backdrop-filter: ' + fb + ';\n'
-      + '  -webkit-backdrop-filter: ' + fb + ';\n'
-      + '}\n\n'
-      + '<!-- SVG: paste once anywhere in <body>. Sized for ' + w + '×' + h + 'px. -->\n'
-      + '<svg width="0" height="0" style="position:absolute" aria-hidden="true">\n'
-      + prettyFilter(LG.filterMarkup(id, w, h, o, r)) + '\n'
-      + '</svg>\n\n'
-      + '<!-- JS: one line, flags browsers without the lens -->\n'
-      + '<script>\n'
-      + "  if (!(navigator.userAgentData && navigator.userAgentData.brands.some(function (b) { return /Chromium/.test(b.brand); }))) document.documentElement.classList.add('no-lens');\n"
-      + '<\/script>\n';
+  function attrCode() {
+    var json = JSON.stringify(glassOptions());
+    return '<!-- Put the options on the glass layer. The background is found automatically:\n'
+      + '     the nearest image, <img> or <video> behind the layer. Mark it with\n'
+      + '     data-liquid-glass-source if the page has several. -->\n'
+      + '<div class="element">\n'
+      + '  <div class="element_image" data-liquid-glass-source></div>\n'
+      + '  <div class="element_content">\n'
+      + "    <div class=\"element_layer\" data-liquid-glass='" + json + "'></div>\n"
+      + '    <div class="element_text">Your content</div>\n'
+      + '  </div>\n'
+      + '</div>\n\n'
+      + '<style>\n'
+      + '  .element_text { position: relative; z-index: 1; }  /* content above the glass */\n'
+      + '  .element_layer { border-radius: ' + radius() + 'px; }\n'
+      + '</style>\n\n'
+      + '<!-- One line applies every [data-liquid-glass] on the page -->\n'
+      + '<script src="liquid-glass.min.js"><\/script>\n'
+      + '<script>LiquidGlass.init();<\/script>\n';
   }
 
   var NOTES = {
-    script: 'Recommended. Works at any size and redraws the lens when the element resizes.',
-    static: 'No library needed, but the SVG is fixed to the current glass size. Generate again if the size changes.',
+    script: 'Recommended. The glass refracts the image you pass as source, follows its size and radius, and redraws only when something changes.',
+    attr: 'For CMS themes such as WordPress: options live on the element, and one call applies every glass on the page.',
     lib: 'Minified library. Download it, or save this as liquid-glass.min.js next to your page.',
     json: 'All current settings, for saving or sharing a preset.'
   };
@@ -252,7 +265,7 @@
   function writeCode() {
     var out = '';
     if (activeTab === 'script') out = scriptCode();
-    else if (activeTab === 'static') out = staticCode();
+    else if (activeTab === 'attr') out = attrCode();
     else if (activeTab === 'lib') out = libSource || 'Loading liquid-glass.min.js…';
     else out = JSON.stringify(state, null, 2);
     $('code').textContent = out;
